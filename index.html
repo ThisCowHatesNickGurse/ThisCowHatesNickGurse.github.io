@@ -1,67 +1,33 @@
 <!DOCTYPE html>
-<html>
+<html lang="en">
 <head>
-    <title>Edit Twitter Meta & Upload</title>
-    <style>
-        body { font-family: Arial; margin: 20px; }
-        input, button { margin: 5px 0; width: 100%; padding: 5px; }
-        label { display: block; margin-top: 10px; font-weight: bold; }
-    </style>
-</head>
-<body>
-    <h1>Edit Twitter Meta Tags & Upload to Catbox</h1>
-
-    <label for="title">Twitter Title:</label>
-    <input type="text" id="title" value="Edit Title">
-
-    <label for="description">Twitter Description:</label>
-    <input type="text" id="description" value="Edit Description">
-
-    <label for="image">Twitter Image URL:</label>
-    <input type="text" id="image" value="Add Image URL">
-
-    <label for="userhash">Catbox Userhash (optional):</label>
-    <input type="text" id="userhash">
-
-    <button onclick="uploadToCatbox()">Upload to Catbox</button>
-
-    <p id="status"></p>
-
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Inject HTML from URL</title>
     <script>
-        async function uploadToCatbox() {
-            const title = document.getElementById('title').value;
-            const description = document.getElementById('description').value;
-            const image = document.getElementById('image').value;
-            const userhash = document.getElementById('userhash').value;
+        // Function to get the 'q' parameter from the URL
+        function getQueryParameter(param) {
+            const urlParams = new URLSearchParams(window.location.search);
+            return urlParams.get(param);
+        }
 
-            // Assemble the HTML
-            const htmlContent = `
-<head>
-    <meta name="twitter:card" content="summary_large_image" 'DONT EDIT THIS'> 
-    <meta name="twitter:title" content="${title}"> 
-    <meta name="twitter:description" content="${description}"> 
-    <meta name="twitter:image" content="${image}"> 
-</head>`;
-
-            const formData = new FormData();
-            formData.append('reqtype', 'fileupload');
-            formData.append('userhash', userhash || 'null');
-
-            const file = new Blob([htmlContent], { type: 'text/html' });
-            formData.append('fileToUpload', file, 'meta.html');
-
-            try {
-                const response = await fetch('https://catbox.moe/user/api.php', {
-                    method: 'POST',
-                    body: formData
-                });
-
-                const text = await response.text();
-                document.getElementById('status').innerText = `Upload result: ${text}`;
-            } catch (error) {
-                document.getElementById('status').innerText = `Error: ${error}`;
+        // Function to inject HTML content from the 'q' parameter
+        function injectHTML() {
+            const htmlContent = getQueryParameter('q');
+            if (htmlContent) {
+                // Decode and inject the HTML content into the body
+                document.body.innerHTML = decodeURIComponent(htmlContent);
+            } else {
+                document.body.innerHTML = "<h1>No HTML provided in query string.</h1>";
             }
         }
+
+        // Call the injectHTML function when the page loads
+        window.onload = injectHTML;
     </script>
+</head>
+<body>
+    <h1>Welcome to the Dynamic HTML Injector</h1>
+    <p>If you provide a 'q' parameter in the URL with HTML content, it will be injected here.</p>
 </body>
 </html>
