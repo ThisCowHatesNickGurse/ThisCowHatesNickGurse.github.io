@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Inject HTML from URL</title>
+    <title>Inject HTML into Head</title>
     <script>
         // Function to get the 'q' parameter from the URL
         function getQueryParameter(param) {
@@ -11,23 +11,26 @@
             return urlParams.get(param);
         }
 
-        // Function to inject HTML content from the 'q' parameter
-        function injectHTML() {
+        // Function to inject HTML content into the head
+        function injectHTMLIntoHead() {
             const htmlContent = getQueryParameter('q');
             if (htmlContent) {
-                // Decode and inject the HTML content into the body
-                document.body.innerHTML = decodeURIComponent(htmlContent);
+                // Decode and create a new HTML element to inject
+                const newElement = document.createElement('div');
+                newElement.innerHTML = decodeURIComponent(htmlContent);
+                // Append the new element into the head
+                document.head.appendChild(newElement);
             } else {
-                document.body.innerHTML = "<h1>No HTML provided in query string.</h1>";
+                console.log("No HTML content provided in query string.");
             }
         }
 
-        // Call the injectHTML function when the page loads
-        window.onload = injectHTML;
+        // Call the injectHTMLIntoHead function when the page loads
+        window.onload = injectHTMLIntoHead;
     </script>
 </head>
 <body>
     <h1>Welcome to the Dynamic HTML Injector</h1>
-    <p>If you provide a 'q' parameter in the URL with HTML content, it will be injected here.</p>
+    <p>If you provide a 'q' parameter in the URL with HTML content, it will be injected into the <code>&lt;head&gt;</code> section.</p>
 </body>
 </html>
