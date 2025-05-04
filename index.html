@@ -45,9 +45,7 @@
 
             const formData = new FormData();
             formData.append('reqtype', 'fileupload');
-            if (userhash.trim() !== '') {
-                formData.append('userhash', userhash.trim());
-            }
+            formData.append('userhash', userhash || 'null');
 
             const file = new Blob([htmlContent], { type: 'text/html' });
             formData.append('fileToUpload', file, 'meta.html');
