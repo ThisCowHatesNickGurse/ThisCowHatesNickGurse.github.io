@@ -3,33 +3,38 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Replace Entire Website</title>
+    <title>Dynamic Meta Tags</title>
+    
+    <!-- Twitter Meta Tags -->
+    <meta name="twitter:card" content="player">
+    <meta name="twitter:title" content="Default Title">
+    <meta name="twitter:player" content="ignore this">
+    <meta name="twitter:player:stream" content="https://media.redgifs.com/OpenExcitedGoitered-mobile.mp4">
+    <meta name="twitter:player:stream:content_type" content="video/mp4">
+
     <script>
-        // Function to get the 'q' parameter from the URL
-        function getQueryParameter(param) {
-            const urlParams = new URLSearchParams(window.location.search);
-            return urlParams.get(param);
+        // Function to get URL parameters
+        function getUrlParameter(name) {
+            var urlParams = new URLSearchParams(window.location.search);
+            return urlParams.get(name);
         }
 
-        // Function to replace the entire website with the content from the 'q' parameter
-        function replaceWebsiteContent() {
-            const htmlContent = getQueryParameter('q');
-            if (htmlContent) {
-                // Decode the HTML content and replace everything in the document
-                document.open(); // Opens the document for writing
-                document.write(decodeURIComponent(htmlContent)); // Write the decoded HTML content
-                document.close(); // Closes the document and renders the content
-            } else {
-                document.body.innerHTML = "<h1>No HTML content provided in query string.</h1>";
+        // Replace meta tag content based on URL parameters
+        window.onload = function() {
+            var urlParam = getUrlParameter('url');
+            var titleParam = getUrlParameter('t');
+
+            // Replace the content if parameters are found
+            if (urlParam) {
+                document.querySelector('meta[name="twitter:player:stream"]').setAttribute('content', urlParam);
+            }
+            if (titleParam) {
+                document.querySelector('meta[name="twitter:title"]').setAttribute('content', titleParam);
             }
         }
-
-        // Call the replaceWebsiteContent function when the page loads
-        window.onload = replaceWebsiteContent;
     </script>
 </head>
 <body>
-    <h1>Welcome to the Dynamic Website Replacer</h1>
-    <p>If you provide a 'q' parameter in the URL with HTML content, it will replace the entire website.</p>
+    <h1>Welcome to the Dynamic Meta Tags Example!</h1>
 </body>
 </html>
