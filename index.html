@@ -1,40 +1,73 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Dynamic Meta Tags</title>
-    
-    <!-- Twitter Meta Tags -->
-    <meta name="twitter:card" content="player">
-    <meta name="twitter:title" content="Default Title">
-    <meta name="twitter:player" content="ignore this">
-    <meta name="twitter:player:stream" content="https://media.redgifs.com/OpenExcitedGoitered-mobile.mp4">
-    <meta name="twitter:player:stream:content_type" content="video/mp4">
-
-    <script>
-        // Function to get URL parameters
-        function getUrlParameter(name) {
-            var urlParams = new URLSearchParams(window.location.search);
-            return urlParams.get(name);
-        }
-
-        // Replace meta tag content based on URL parameters
-        window.onload = function() {
-            var urlParam = getUrlParameter('url');
-            var titleParam = getUrlParameter('t');
-
-            // Replace the content if parameters are found
-            if (urlParam) {
-                document.querySelector('meta[name="twitter:player:stream"]').setAttribute('content', urlParam);
-            }
-            if (titleParam) {
-                document.querySelector('meta[name="twitter:title"]').setAttribute('content', titleParam);
-            }
-        }
-    </script>
+  <meta charset="UTF-8">
+  <title>GIF Grid Splitter</title>
+  <script src="https://cdn.jsdelivr.net/npm/gifuct-js@1.0.2/dist/gifuct.min.js"></script>
+  <style>
+    body { font-family: sans-serif; padding: 20px; }
+    canvas { border: 1px solid #ccc; margin: 5px; }
+  </style>
 </head>
 <body>
-    <h1>Welcome to the Dynamic Meta Tags Example!</h1>
+  <h1>GIF Grid Splitter</h1>
+  <input type="file" id="gifInput" accept="image/gif" />
+  <div id="output"></div>
+
+  <script>
+    const gifInput = document.getElementById('gifInput');
+    const output = document.getElementById('output');
+
+    gifInput.addEventListener('change', async (e) => {
+      const file = e.target.files[0];
+      if (!file) return;
+
+      const arrayBuffer = await file.arrayBuffer();
+      const gif = gifuct.parseGIF(arrayBuffer);
+      const frames = gifuct.decompressFrames(gif, true);
+
+      const cols = 2;
+      const rows = 2;
+
+      const { width, height } = gif.lsd;
+      const tileWidth = width / cols;
+      const tileHeight = height / rows;
+
+      // Clear previous
+      output.innerHTML = '';
+
+      for (let r = 0; r < rows; r++) {
+        for (let c = 0; c < cols; c++) {
+          const container = document.createElement('div');
+          container.innerHTML = `<h4>Part ${r}, ${c}</h4>`;
+          output.appendChild(container);
+
+          frames.forEach((frame, index) => {
+            const canvas = document.createElement('canvas');
+            canvas.width = tileWidth;
+            canvas.height = tileHeight;
+            const ctx = canvas.getContext('2d');
+
+            const imageData = ctx.createImageData(width, height);
+            imageData.data.set(frame.patch);
+            const fullCanvas = document.createElement('canvas');
+            fullCanvas.width = width;
+            fullCanvas.height = height;
+            const fullCtx = fullCanvas.getContext('2d');
+            fullCtx.putImageData(imageData, 0, 0);
+
+            // Crop tile
+            ctx.drawImage(
+              fullCanvas,
+              c * tileWidth, r * tileHeight, tileWidth, tileHeight,  // source
+              0, 0, tileWidth, tileHeight                            // dest
+            );
+
+            container.appendChild(canvas);
+          });
+        }
+      }
+    });
+  </script>
 </body>
 </html>
