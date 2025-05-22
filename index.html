@@ -33,7 +33,7 @@
       const tileWidth = width / cols;
       const tileHeight = height / rows;
 
-      // Clear previous
+      // Clear previous output
       output.innerHTML = '';
 
       for (let r = 0; r < rows; r++) {
@@ -60,7 +60,7 @@
             ctx.drawImage(
               fullCanvas,
               c * tileWidth, r * tileHeight, tileWidth, tileHeight,  // source
-              0, 0, tileWidth, tileHeight                            // dest
+              0, 0, tileWidth, tileHeight                            // destination
             );
 
             container.appendChild(canvas);
