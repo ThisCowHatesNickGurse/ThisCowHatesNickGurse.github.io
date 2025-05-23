@@ -1,0 +1,118 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Challenge URL Creator</title>
+  <style>
+    body { font-family: Arial, sans-serif; padding: 20px; background: #f9f9f9; }
+    .container { max-width: 600px; margin: auto; background: white; padding: 20px; border-radius: 10px; box-shadow: 0 0 10px rgba(0,0,0,0.1); }
+    input, select, button { width: 100%; padding: 10px; margin: 10px 0; }
+    .puzzle { margin-top: 20px; }
+    #mazeCanvas, #mathPuzzle { border: 1px solid #ccc; display: block; margin-top: 10px; }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <h2>Challenge URL Creator</h2>
+    <label for="url">Reward URL:</label>
+    <input type="text" id="url" placeholder="https://example.com/reward">
+    <label for="puzzle">Puzzle Type:</label>
+    <select id="puzzle">
+      <option value="1">Maze</option>
+      <option value="2">Math Challenge</option>
+    </select>
+    <button onclick="generateChallengeURL()">Generate Challenge URL</button>
+    <p id="generatedUrl"></p>
+
+    <div class="puzzle" id="puzzleArea"></div>
+  </div>
+
+  <script>
+    function xorEncryptDecrypt(input, key) {
+      let result = '';
+      for (let i = 0; i < input.length; i++) {
+        result += String.fromCharCode(input.charCodeAt(i) ^ key.charCodeAt(i % key.length));
+      }
+      return result;
+    }
+
+    function base64EncodeWithKey(str, key) {
+      const encrypted = xorEncryptDecrypt(str, key);
+      return btoa(unescape(encodeURIComponent(encrypted)));
+    }
+
+    function base64DecodeWithKey(encoded, key) {
+      const decrypted = decodeURIComponent(escape(atob(encoded)));
+      return xorEncryptDecrypt(decrypted, key);
+    }
+
+    function generateChallengeURL() {
+      const url = document.getElementById('url').value;
+      const puzzleType = document.getElementById('puzzle').value;
+      const key = puzzleType;
+      const encodedUrl = base64EncodeWithKey(url, key);
+      const challengeUrl = `${window.location.origin}${window.location.pathname}?reward=${encodedUrl}&puzzletype=${puzzleType}`;
+      document.getElementById('generatedUrl').textContent = `Challenge URL: ${challengeUrl}`;
+    }
+
+    function renderMazePuzzle(rewardUrl) {
+      const puzzleDiv = document.getElementById('puzzleArea');
+      puzzleDiv.innerHTML = '<p>Solve the maze (click the center square):</p><canvas id="mazeCanvas" width="200" height="200"></canvas>';
+      const canvas = document.getElementById('mazeCanvas');
+      const ctx = canvas.getContext('2d');
+
+      ctx.fillStyle = '#000';
+      ctx.fillRect(0, 0, 200, 200);
+      ctx.clearRect(80, 80, 40, 40);
+
+      canvas.addEventListener('click', (e) => {
+        const rect = canvas.getBoundingClientRect();
+        const x = e.clientX - rect.left;
+        const y = e.clientY - rect.top;
+        if (x > 80 && x < 120 && y > 80 && y < 120) {
+          puzzleDiv.innerHTML += `<p><strong>Success!</strong> Your reward: <a href="${rewardUrl}" target="_blank">Click here</a></p>`;
+        }
+      });
+    }
+
+    function renderMathPuzzle(rewardUrl) {
+      const puzzleDiv = document.getElementById('puzzleArea');
+      const a = Math.floor(Math.random() * 50 + 1);
+      const b = Math.floor(Math.random() * 50 + 1);
+      const answer = a + b;
+
+      puzzleDiv.innerHTML = `<p>Solve the math problem:</p>
+        <p>${a} + ${b} = ?</p>
+        <input type="number" id="mathAnswer">
+        <button onclick="checkMathAnswer(${answer}, '${rewardUrl}')">Submit</button>
+        <div id="mathResult"></div>`;
+    }
+
+    function checkMathAnswer(correctAnswer, rewardUrl) {
+      const userAnswer = parseInt(document.getElementById('mathAnswer').value);
+      const resultDiv = document.getElementById('mathResult');
+      if (userAnswer === correctAnswer) {
+        resultDiv.innerHTML = `<p><strong>Correct!</strong> Your reward: <a href="${rewardUrl}" target="_blank">Click here</a></p>`;
+      } else {
+        resultDiv.textContent = 'Try again!';
+      }
+    }
+
+    window.onload = function () {
+      const urlParams = new URLSearchParams(window.location.search);
+      if (urlParams.has('reward') && urlParams.has('puzzletype')) {
+        const encodedReward = urlParams.get('reward');
+        const type = urlParams.get('puzzletype');
+        const reward = base64DecodeWithKey(encodedReward, type);
+
+        if (type === '1') {
+          renderMazePuzzle(reward);
+        } else if (type === '2') {
+          renderMathPuzzle(reward);
+        }
+      }
+    }
+  </script>
+</body>
+</html>
