@@ -1,3 +1,4 @@
+<!DOCTYPE html>
 <html lang="en">
 <head>
   <meta charset="UTF-8">
@@ -5,62 +6,48 @@
   <title>Challenge URL Creator</title>
   <style>
     body { font-family: Arial, sans-serif; padding: 20px; background: #f9f9f9; }
-    .container { max-width: 600px; margin: auto; background: white; padding: 20px; border-radius: 10px; box-shadow: 0 0 10px rgba(0,0,0,0.1); }
-    input, select, button { width: 100%; padding: 10px; margin: 10px 0; }
+    .container { max-width: 700px; margin: auto; background: white; padding: 20px; border-radius: 10px; box-shadow: 0 0 10px rgba(0,0,0,0.1); }
+    input, select, button, textarea { width: 100%; padding: 10px; margin: 10px 0; border-radius: 5px; border: 1px solid #ccc; }
+    button { cursor: pointer; background-color: #4CAF50; color: white; border: none; }
+    button:hover { background-color: #45a049; }
     .puzzle { margin-top: 20px; }
     #mazeCanvas, #mathPuzzle { border: 1px solid #ccc; display: block; margin-top: 10px; }
+    .hidden { display: none; }
   </style>
   <script src="https://www.google.com/recaptcha/api.js" async defer></script>
 </head>
 <body>
-  <div class="container">
-    <h2>Challenge URL Creator</h2>
-    <label for="url">Reward URL:</label>
-    <input type="text" id="url" placeholder="https://example.com/reward">
-    <label for="puzzle">Puzzle Type:</label>
-    <select id="puzzle">
-      <option value="1">Maze</option>
-      <option value="2">Math Challenge</option>
-      <option value="3">Anagram</option>
-      <option value="4">Trivia</option>
-      <option value="5">Memory Game</option>
-      <option value="6">CAPTCHA Verification</option>
-      <option value="7">Image URL Verification</option>
-    </select>
-    <button onclick="generateChallengeURL()">Generate Challenge URL</button>
-    <p id="generatedUrl"></p>
-
-    <div class="puzzle" id="puzzleArea"></div>
-  </div>
-
-  <script>
-    function xorEncryptDecrypt(input, key) {
-      let result = '';
-      for (let i = 0; i < input.length; i++) {
-        result += String.fromCharCode(input.charCodeAt(i) ^ key.charCodeAt(i % key.length));
-      }
-      return result;
-    }
-
-    function base64EncodeWithKey(str, key) {
-      const encrypted = xorEncryptDecrypt(str, key);
-      return btoa(unescape(encodeURIComponent(encrypted)));
-    }
-
-    function base64DecodeWithKey(encoded, key) {
-      const decrypted = decodeURIComponent(escape(atob(encoded)));
-      return xorEncryptDecrypt(decrypted, key);
-    }
-
-    function generateChallengeURL() {
-      const url = document.getElementById('url').value;
-      const puzzleType = document.getElementById('puzzle').value;
-      const key = puzzleType;
-      const encodedUrl = base64EncodeWithKey(url, key);
-      const challengeUrl = `${window.location.origin}${window.location.pathname}?reward=${encodedUrl}&puzzletype=${puzzleType}`;
-      document.getElementById('generatedUrl').innerHTML = `Challenge URL: <a href="${challengeUrl}" target="_blank">${challengeUrl}</a>`;
-    }
-
+<div class="container">
+  <h2>Challenge URL Creator</h2>
+  <label for="url">Reward URL:</label>
+  <input type="text" id="url" placeholder="https://example.com/reward">
+  <label for="puzzle">Puzzle Type:</label>
+  <select id="puzzle">
+    <option value="1">Maze</option>
+    <option value="2">Math Challenge</option>
+    <option value="3">Anagram</option>
+    <option value="4">Trivia</option>
+    <option value="5">Memory Game</option>
+    <option value="6">CAPTCHA Verification</option>
+    <option value="7">Image URL Verification</option>
+    <option value="8">Upload a Photo to Webhook</option>
+    <option value="9">Drag and Drop Puzzle</option>
+    <option value="10">Emoji Sequence Match</option>
+    <option value="11">Audio Quiz</option>
+    <option value="12">Scroll to Reveal</option>
+  </select>
+  <button onclick="generateChallengeURL()">Generate Challenge URL</button>
+  <p id="generatedUrl"></p>
+  <div class="puzzle" id="puzzleArea"></div>
+</div>
+<script>
+function xorEncryptDecrypt(input, key) {
+  let result = '';
+  for (let i = 0; i < input.length; i++) {
+    result += String.fromCharCode(input.charCodeAt(i) ^ key.charCodeAt(i % key.length));
+  }
+  return result;
+}
     function renderCaptchaPuzzle(rewardUrl) {
       const puzzleDiv = document.getElementById('puzzleArea');
       puzzleDiv.innerHTML = `
@@ -192,25 +179,109 @@
         alert('Incorrect sequence. Try again.');
       }
     }
-
-    window.onload = function () {
-      const urlParams = new URLSearchParams(window.location.search);
-      if (urlParams.has('reward') && urlParams.has('puzzletype')) {
-        const encodedReward = urlParams.get('reward');
-        const type = urlParams.get('puzzletype');
-        const reward = base64DecodeWithKey(encodedReward, type);
-
-        switch (type) {
-          case '1': renderMazePuzzle(reward); break;
-          case '2': renderMathPuzzle(reward); break;
-          case '3': renderAnagramPuzzle(reward); break;
-          case '4': renderTriviaPuzzle(reward); break;
-          case '5': renderMemoryGame(reward); break;
-          case '6': renderCaptchaPuzzle(reward); break;
-          case '7': renderImageUrlPuzzle(reward); break;
-        }
-      }
+function base64EncodeWithKey(str, key) {
+  const encrypted = xorEncryptDecrypt(str, key);
+  return btoa(unescape(encodeURIComponent(encrypted)));
+}
+function base64DecodeWithKey(encoded, key) {
+  const decrypted = decodeURIComponent(escape(atob(encoded)));
+  return xorEncryptDecrypt(decrypted, key);
+}
+function generateChallengeURL() {
+  const url = document.getElementById('url').value;
+  const puzzleType = document.getElementById('puzzle').value;
+  const key = puzzleType;
+  const encodedUrl = base64EncodeWithKey(url, key);
+  const challengeUrl = `${window.location.origin}${window.location.pathname}?reward=${encodedUrl}&puzzletype=${puzzleType}`;
+  document.getElementById('generatedUrl').innerHTML = `Challenge URL: <a href="${challengeUrl}" target="_blank">${challengeUrl}</a>`;
+}
+function renderUploadToWebhook(rewardUrl) {
+  const puzzleDiv = document.getElementById('puzzleArea');
+  puzzleDiv.innerHTML = `<p>Upload a photo (jpg/png/jpeg) to the webhook:</p>
+    <input type="file" id="photoUpload">
+    <button onclick="sendPhotoToWebhook('${rewardUrl}')">Upload</button>
+    <div id="uploadResult"></div>`;
+}
+function sendPhotoToWebhook(rewardUrl) {
+  const file = document.getElementById('photoUpload').files[0];
+  const resultDiv = document.getElementById('uploadResult');
+  if (!file || !file.type.match(/image\/(jpeg|jpg|png)/)) {
+    resultDiv.textContent = 'Invalid file. Please upload a .jpg, .jpeg, or .png image.';
+    return;
+  }
+  const formData = new FormData();
+  formData.append('file', file);
+  fetch('YOUR_WEBHOOK_URL_HERE', {
+    method: 'POST',
+    body: formData
+  }).then(response => {
+    if (response.ok) {
+      resultDiv.innerHTML = `<p><strong>Uploaded!</strong> Your reward: <a href="${rewardUrl}" target="_blank">Click here</a></p>`;
+    } else {
+      resultDiv.textContent = 'Upload failed.';
     }
-  </script>
+  }).catch(() => {
+    resultDiv.textContent = 'Upload error.';
+  });
+}
+function renderDragAndDropPuzzle(rewardUrl) {
+  const puzzleDiv = document.getElementById('puzzleArea');
+  puzzleDiv.innerHTML = `<p>Drag the item into the box:</p>
+    <div draggable="true" id="dragItem" style="width:50px;height:50px;background:red;"></div>
+    <div id="dropZone" ondrop="handleDrop(event, '${rewardUrl}')" ondragover="event.preventDefault()" style="width:200px;height:200px;border:2px dashed #aaa;margin-top:10px;"></div>`;
+}
+function handleDrop(event, rewardUrl) {
+  event.preventDefault();
+  document.getElementById('puzzleArea').innerHTML += `<p><strong>Success!</strong> Your reward: <a href="${rewardUrl}" target="_blank">Click here</a></p>`;
+}
+function renderEmojiSequence(rewardUrl) {
+  const puzzleDiv = document.getElementById('puzzleArea');
+  const sequence = ['🚀', '✨', '💥'];
+  puzzleDiv.innerHTML = `<p>Repeat the emoji sequence: ${sequence.join(' ')}</p>
+    <input type="text" id="emojiAnswer" placeholder="e.g., 🚀 ✨ 💥">
+    <button onclick="checkEmojiAnswer('${sequence.join(' ')}', '${rewardUrl}')">Submit</button>
+    <div id="emojiResult"></div>`;
+}
+function checkEmojiAnswer(correct, rewardUrl) {
+  const input = document.getElementById('emojiAnswer').value.trim();
+  const resultDiv = document.getElementById('emojiResult');
+  if (input === correct) {
+    resultDiv.innerHTML = `<p><strong>Correct!</strong> Your reward: <a href="${rewardUrl}" target="_blank">Click here</a></p>`;
+  } else {
+    resultDiv.textContent = 'Try again!';
+  }
+}
+function renderScrollToReveal(rewardUrl) {
+  const puzzleDiv = document.getElementById('puzzleArea');
+  puzzleDiv.innerHTML = `<div style="height:600px;background:linear-gradient(white, gray);"><p style="margin-top:550px"><strong>Scroll complete!</strong> Your reward: <a href="${rewardUrl}" target="_blank">Click here</a></p></div>`;
+}
+window.onload = function () {
+  const urlParams = new URLSearchParams(window.location.search);
+  if (urlParams.has('reward')) && urlParams.has('puzzletype')) {
+    const container = document.querySelector('.container');
+    if (container) {
+      container.style.display = 'none';  // hide the whole form/container
+    }
+  }
+
+  // Your existing onload code for rendering puzzles...
+      const encodedReward = urlParams.get('reward');
+    const type = urlParams.get('puzzletype');
+    const reward = base64DecodeWithKey(encodedReward, type);
+    switch (type) {
+      case '1': renderMazePuzzle(reward); break;
+      case '2': renderMathPuzzle(reward); break;
+      case '3': renderAnagramPuzzle(reward); break;
+      case '4': renderTriviaPuzzle(reward); break;
+      case '5': renderMemoryGame(reward); break;
+      case '6': renderCaptchaPuzzle(reward); break;
+      case '7': renderImageUrlPuzzle(reward); break;
+      case '8': renderUploadToWebhook(reward); break;
+      case '9': renderDragAndDropPuzzle(reward); break;
+      case '10': renderEmojiSequence(reward); break;
+      case '11': renderAudioQuiz(reward); break;
+      case '12': renderScrollToReveal(reward); break;
+};
+</script>
 </body>
 </html>
