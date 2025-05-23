@@ -1,99 +1,304 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="en" >
 <head>
   <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-  <title>Image Puzzle Challenge</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Challenge URL Creator</title>
   <style>
-    body { font-family: Arial, sans-serif; background: #f0f0f0; padding: 20px; }
-    .container { max-width: 800px; margin: auto; background: white; padding: 20px; border-radius: 10px; box-shadow: 0 0 10px rgba(0,0,0,0.1); }
-    input, select, button { width: 100%; padding: 10px; margin: 10px 0; }
-    .puzzle-container { display: grid; gap: 2px; margin-top: 20px; }
-    .puzzle-piece { background-size: cover; cursor: move; width: 100%; height: 100%; }
-    .puzzle-grid { aspect-ratio: 1 / 1; }
+    body { font-family: Arial, sans-serif; padding: 20px; background: #f9f9f9; }
+    .container {
+      max-width: 700px; margin: auto;
+      background: white; padding: 20px;
+      border-radius: 10px; box-shadow: 0 0 10px rgba(0,0,0,0.1);
+    }
+    input, select, button {
+      width: 100%; padding: 10px; margin: 10px 0;
+      box-sizing: border-box;
+      border: 1px solid #ccc; border-radius: 5px;
+    }
+    button {
+      background-color: #007bff; color: white; border: none; cursor: pointer;
+      font-weight: bold;
+    }
+    button:hover { background-color: #0056b3; }
+    .puzzle { margin-top: 20px; }
+    #dragDropPuzzle {
+      display: flex; flex-wrap: wrap; gap: 10px; margin-top: 15px;
+      user-select: none;
+      justify-content: center;
+    }
+    #pieces, #dropzones {
+      display: flex; flex-wrap: wrap; gap: 10px;
+      justify-content: center;
+    }
+    .draggable {
+      border: 2px solid #007bff;
+      border-radius: 8px;
+      background-repeat: no-repeat;
+      cursor: grab;
+      box-sizing: border-box;
+    }
+    .dropzone {
+      border: 2px dashed #007bff;
+      border-radius: 8px;
+      box-sizing: border-box;
+    }
+    label.inline {
+      display: inline-block;
+      width: 48%;
+      box-sizing: border-box;
+    }
+    label.inline input {
+      width: 90%;
+      margin-left: 4%;
+    }
   </style>
 </head>
 <body>
   <div class="container">
-    <h2>Image Puzzle Challenge</h2>
+    <h2>Challenge URL Creator</h2>
+
     <label for="rewardUrl">Reward URL:</label>
-    <input type="text" id="rewardUrl" placeholder="https://example.com/reward">
+    <input type="text" id="rewardUrl" placeholder="https://example.com/reward" />
 
-    <label for="imageUrl">Image URL:</label>
-    <input type="text" id="imageUrl" placeholder="https://example.com/image.jpg">
+    <label for="challengeType">Challenge Type:</label>
+    <select id="challengeType">
+      <option value="">-- Select a challenge --</option>
+      <option value="dragdrop">Drag and Drop Puzzle</option>
+      <option value="uploadimage">Upload Image to Webhook</option>
+    </select>
 
-    <label for="gridSize">Grid Size (e.g., 3 for 3x3):</label>
-    <input type="number" id="gridSize" min="2" max="10" value="3">
+    <div id="extraInputArea"></div>
 
-    <button onclick="startPuzzle()">Start Puzzle</button>
+    <button onclick="generateChallengeURL()">Generate Challenge URL</button>
 
-    <div class="puzzle-container puzzle-grid" id="puzzleArea"></div>
-    <p id="resultMessage"></p>
+    <p id="generatedUrl"></p>
+
+    <div class="puzzle" id="puzzleArea"></div>
   </div>
 
   <script>
-    let gridSize, rewardUrl, correctOrder = [], currentOrder = [];
+    const challengeTypeSelect = document.getElementById('challengeType');
+    const extraInputArea = document.getElementById('extraInputArea');
 
-    function startPuzzle() {
-      const imageUrl = document.getElementById('imageUrl').value;
-      rewardUrl = document.getElementById('rewardUrl').value;
-      gridSize = parseInt(document.getElementById('gridSize').value);
-      if (!imageUrl || !rewardUrl || isNaN(gridSize) || gridSize < 2) {
-        alert("Please enter valid image URL, reward URL, and grid size (>= 2).");
+    challengeTypeSelect.addEventListener('change', () => {
+      const val = challengeTypeSelect.value;
+      extraInputArea.innerHTML = '';
+
+      if (val === 'dragdrop') {
+        extraInputArea.innerHTML = `
+          <label for="puzzleImageUrl">Puzzle Image URL (wide images work best):</label>
+          <input type="url" id="puzzleImageUrl" placeholder="https://example.com/image.jpg" />
+          <div style="display:flex; gap:10px;">
+            <label class="inline">Rows:
+              <input type="number" id="puzzleRows" min="1" max="10" value="1" />
+            </label>
+            <label class="inline">Columns:
+              <input type="number" id="puzzleCols" min="1" max="10" value="3" />
+            </label>
+          </div>
+        `;
+      } else if (val === 'uploadimage') {
+        extraInputArea.innerHTML = `
+          <label for="webhookUrl">Webhook URL:</label>
+          <input type="url" id="webhookUrl" placeholder="https://your-webhook.url" />
+        `;
+      }
+    });
+
+    function xorEncryptDecrypt(input, key) {
+      let result = '';
+      for (let i = 0; i < input.length; i++) {
+        result += String.fromCharCode(input.charCodeAt(i) ^ key.charCodeAt(i % key.length));
+      }
+      return result;
+    }
+
+    function base64EncodeWithKey(str, key) {
+      const encrypted = xorEncryptDecrypt(str, key);
+      return btoa(unescape(encodeURIComponent(encrypted)));
+    }
+
+    function base64DecodeWithKey(encoded, key) {
+      const decrypted = decodeURIComponent(escape(atob(encoded)));
+      return xorEncryptDecrypt(decrypted, key);
+    }
+
+    function generateChallengeURL() {
+      const rewardUrl = document.getElementById('rewardUrl').value.trim();
+      const challengeType = challengeTypeSelect.value;
+
+      if (!rewardUrl || !challengeType) {
+        alert('Please enter a reward URL and select a challenge type.');
         return;
       }
-      generatePuzzle(imageUrl, gridSize);
-    }
 
-    function generatePuzzle(imageUrl, grid) {
-      const puzzleArea = document.getElementById('puzzleArea');
-      puzzleArea.innerHTML = '';
-      puzzleArea.style.gridTemplateColumns = `repeat(${grid}, 1fr)`;
-      puzzleArea.style.gridTemplateRows = `repeat(${grid}, 1fr)`;
+      let extraData = '';
+      if (challengeType === 'dragdrop') {
+        const puzzleImageUrl = document.getElementById('puzzleImageUrl')?.value.trim();
+        const rows = parseInt(document.getElementById('puzzleRows')?.value, 10) || 1;
+        const cols = parseInt(document.getElementById('puzzleCols')?.value, 10) || 3;
 
-      correctOrder = [];
-      for (let i = 0; i < grid * grid; i++) correctOrder.push(i);
-      currentOrder = [...correctOrder].sort(() => Math.random() - 0.5);
-
-      currentOrder.forEach((val, index) => {
-        const piece = document.createElement('div');
-        piece.classList.add('puzzle-piece');
-        piece.style.backgroundImage = `url(${imageUrl})`;
-        piece.style.backgroundPosition = `${(val % grid) * -100 / (grid - 1)}% ${(Math.floor(val / grid)) * -100 / (grid - 1)}%`;
-        piece.setAttribute('data-index', val);
-        piece.setAttribute('draggable', true);
-
-        piece.addEventListener('dragstart', dragStart);
-        piece.addEventListener('dragover', e => e.preventDefault());
-        piece.addEventListener('drop', drop);
-
-        puzzleArea.appendChild(piece);
-      });
-    }
-
-    let draggedIndex;
-    function dragStart(e) {
-      draggedIndex = Array.from(e.target.parentNode.children).indexOf(e.target);
-    }
-
-    function drop(e) {
-      const dropIndex = Array.from(e.target.parentNode.children).indexOf(e.target);
-      const puzzleArea = document.getElementById('puzzleArea');
-      const children = Array.from(puzzleArea.children);
-      puzzleArea.insertBefore(children[draggedIndex], children[dropIndex]);
-      puzzleArea.insertBefore(children[dropIndex], children[draggedIndex + (draggedIndex < dropIndex ? 1 : 0)]);
-      checkPuzzleSolved();
-    }
-
-    function checkPuzzleSolved() {
-      const pieces = document.querySelectorAll('.puzzle-piece');
-      const order = Array.from(pieces).map(p => parseInt(p.getAttribute('data-index')));
-      if (order.every((val, i) => val === correctOrder[i])) {
-        document.getElementById('resultMessage').innerHTML = `<strong>Puzzle Solved!</strong> Your reward: <a href="${rewardUrl}" target="_blank">Click here</a>`;
-      } else {
-        document.getElementById('resultMessage').innerText = '';
+        if (!puzzleImageUrl) {
+          alert('Please enter a puzzle image URL.');
+          return;
+        }
+        if (rows < 1 || rows > 10 || cols < 1 || cols > 10) {
+          alert('Rows and Columns must be between 1 and 10.');
+          return;
+        }
+        extraData = JSON.stringify({ imageUrl: puzzleImageUrl, rows, cols });
+      } else if (challengeType === 'uploadimage') {
+        const webhookUrl = document.getElementById('webhookUrl')?.value.trim();
+        if (!webhookUrl) {
+          alert('Please enter a webhook URL.');
+          return;
+        }
+        extraData = webhookUrl;
       }
+
+      const combinedData = JSON.stringify({ rewardUrl, extraData });
+      const encoded = base64EncodeWithKey(combinedData, challengeType);
+
+      const challengeUrl = `${window.location.origin}${window.location.pathname}?data=${encoded}&type=${challengeType}`;
+      document.getElementById('generatedUrl').innerHTML = `Challenge URL: <a href="${challengeUrl}" target="_blank">${challengeUrl}</a>`;
     }
-  </script>
-</body>
-</html>
+
+    // Drag and Drop Puzzle Renderer with dynamic grid slicing
+    function renderDragDropPuzzle(dataObj) {
+      const puzzleDiv = document.getElementById('puzzleArea');
+      let imageUrl = '', rows = 1, cols = 3;
+
+      try {
+        const extra = JSON.parse(dataObj.extraData);
+        imageUrl = extra.imageUrl;
+        rows = extra.rows;
+        cols = extra.cols;
+      } catch {
+        puzzleDiv.textContent = 'Invalid puzzle data.';
+        return;
+      }
+
+      puzzleDiv.innerHTML = `
+        <p>Solve the drag and drop puzzle by placing the pieces in correct order:</p>
+        <div id="dragDropPuzzle">
+          <div id="pieces"></div>
+          <div id="dropzones"></div>
+        </div>
+        <button onclick="checkDragDropPuzzle()">Submit Puzzle</button>
+        <div id="puzzleResult" style="margin-top: 15px; font-weight: bold;"></div>
+      `;
+
+      const piecesContainer = document.getElementById('pieces');
+      const dropzonesContainer = document.getElementById('dropzones');
+
+      piecesContainer.style.width = `${cols * 100 + (cols - 1) * 10}px`;
+      dropzonesContainer.style.width = `${cols * 100 + (cols - 1) * 10}px`;
+
+      const totalPieces = rows * cols;
+      const pieceIds = Array.from({ length: totalPieces }, (_, i) => `piece${i}`);
+
+      // Create draggable pieces with background-position to show correct slice
+      let pieces = pieceIds.map((id, index) => {
+        const row = Math.floor(index / cols);
+        const col = index % cols;
+
+        const div = document.createElement('div');
+        div.className = 'draggable';
+        div.id = id;
+        div.setAttribute('draggable', 'true');
+
+        div.style.width = '100px';
+        div.style.height = '100px';
+        div.style.backgroundImage = `url('${imageUrl}')`;
+        div.style.backgroundSize = `${cols * 100}px ${rows * 100}px`;
+        div.style.backgroundPosition = `-${col * 100}px -${row * 100}px`;
+
+        return div;
+      });
+
+      // Shuffle pieces randomly for initial position
+      pieces.sort(() => Math.random() - 0.5);
+
+      pieces.forEach(piece => piecesContainer.appendChild(piece));
+
+      // Create dropzones in correct order
+      pieceIds.forEach(id => {
+        const dz = document.createElement('div');
+        dz.className = 'dropzone';
+        dz.dataset.accept = id;
+        dz.style.width = '100px';
+        dz.style.height = '100px';
+        dropzonesContainer.appendChild(dz);
+      });
+
+      // Add drag/drop event handlers
+      const draggables = document.querySelectorAll('.draggable');
+      const dropzones = document.querySelectorAll('.dropzone');
+
+      draggables.forEach(draggable => {
+        draggable.addEventListener('dragstart', e => {
+          e.dataTransfer.setData('text/plain', e.target.id);
+        });
+      });
+
+      dropzones.forEach(dropzone => {
+        dropzone.addEventListener('dragover', e => e.preventDefault());
+        dropzone.addEventListener('drop', e => {
+          e.preventDefault();
+          const pieceId = e.dataTransfer.getData('text/plain');
+          const piece = document.getElementById(pieceId);
+          if (dropzone.firstChild) drop
+
+2/2
+
+
+
+
+
+
+
+ChatGPT said:
+zone.removeChild(dropzone.firstChild);
+dropzone.appendChild(piece);
+});
+});
+
+pgsql
+Copy
+Edit
+  window.checkDragDropPuzzle = () => {
+    let solved = true;
+    dropzones.forEach((dz, i) => {
+      const child = dz.firstChild;
+      if (!child || child.id !== dz.dataset.accept) solved = false;
+    });
+
+    const resultDiv = document.getElementById('puzzleResult');
+    if (solved) {
+      resultDiv.innerHTML = `🎉 Puzzle solved! Here's your reward: <a href="${dataObj.rewardUrl}" target="_blank">${dataObj.rewardUrl}</a>`;
+    } else {
+      resultDiv.textContent = 'Incorrect arrangement. Please try again.';
+    }
+  };
+}
+
+window.onload = function() {
+  const params = new URLSearchParams(window.location.search);
+  if (params.has('data') && params.has('type')) {
+    const type = params.get('type');
+    try {
+      const decoded = base64DecodeWithKey(params.get('data'), type);
+      const dataObj = JSON.parse(decoded);
+
+      if (type === 'dragdrop') {
+        renderDragDropPuzzle(dataObj);
+      } else {
+        document.getElementById('puzzleArea').textContent = 'Unsupported challenge type.';
+      }
+    } catch (e) {
+      document.getElementById('puzzleArea').textContent = 'Failed to decode challenge data.';
+    }
+  }
+};
+</script> </body> </html>
