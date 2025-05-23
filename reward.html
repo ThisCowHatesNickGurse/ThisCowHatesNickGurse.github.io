@@ -1,4 +1,3 @@
-<!DOCTYPE html>
 <html lang="en">
 <head>
   <meta charset="UTF-8">
@@ -11,6 +10,7 @@
     .puzzle { margin-top: 20px; }
     #mazeCanvas, #mathPuzzle { border: 1px solid #ccc; display: block; margin-top: 10px; }
   </style>
+  <script src="https://www.google.com/recaptcha/api.js" async defer></script>
 </head>
 <body>
   <div class="container">
@@ -24,6 +24,8 @@
       <option value="3">Anagram</option>
       <option value="4">Trivia</option>
       <option value="5">Memory Game</option>
+      <option value="6">CAPTCHA Verification</option>
+      <option value="7">Image URL Verification</option>
     </select>
     <button onclick="generateChallengeURL()">Generate Challenge URL</button>
     <p id="generatedUrl"></p>
@@ -56,7 +58,37 @@
       const key = puzzleType;
       const encodedUrl = base64EncodeWithKey(url, key);
       const challengeUrl = `${window.location.origin}${window.location.pathname}?reward=${encodedUrl}&puzzletype=${puzzleType}`;
-      document.getElementById('generatedUrl').textContent = `Challenge URL: ${challengeUrl}`;
+      document.getElementById('generatedUrl').innerHTML = `Challenge URL: <a href="${challengeUrl}" target="_blank">${challengeUrl}</a>`;
+    }
+
+    function renderCaptchaPuzzle(rewardUrl) {
+      const puzzleDiv = document.getElementById('puzzleArea');
+      puzzleDiv.innerHTML = `
+        <p>Complete the CAPTCHA to access your reward:</p>
+        <div class="g-recaptcha" data-sitekey="YOUR_RECAPTCHA_SITE_KEY" data-callback="onCaptchaSuccess"></div>
+        <div id="captchaResult"></div>`;
+      window.onCaptchaSuccess = function () {
+        document.getElementById('captchaResult').innerHTML = `<p><strong>Verified!</strong> Your reward: <a href="${rewardUrl}" target="_blank">Click here</a></p>`;
+      }
+    }
+
+    function renderImageUrlPuzzle(rewardUrl) {
+      const puzzleDiv = document.getElementById('puzzleArea');
+      puzzleDiv.innerHTML = `<p>Enter a valid Catbox image URL (ends in .jpg, .png, .jpeg):</p>
+        <input type="text" id="imageUrlInput">
+        <button onclick="checkImageUrl('${rewardUrl}')">Submit</button>
+        <div id="imageUrlResult"></div>`;
+    }
+
+    function checkImageUrl(rewardUrl) {
+      const input = document.getElementById('imageUrlInput').value.trim();
+      const resultDiv = document.getElementById('imageUrlResult');
+      const regex = /^https?:\/\/files\.catbox\.moe\/[^\s]+\.(jpg|jpeg|png)$/i;
+      if (regex.test(input)) {
+        resultDiv.innerHTML = `<p><strong>Valid URL!</strong> Your reward: <a href="${rewardUrl}" target="_blank">Click here</a></p>`;
+      } else {
+        resultDiv.textContent = 'Invalid URL. Please try again.';
+      }
     }
 
     function renderMazePuzzle(rewardUrl) {
@@ -174,6 +206,8 @@
           case '3': renderAnagramPuzzle(reward); break;
           case '4': renderTriviaPuzzle(reward); break;
           case '5': renderMemoryGame(reward); break;
+          case '6': renderCaptchaPuzzle(reward); break;
+          case '7': renderImageUrlPuzzle(reward); break;
         }
       }
     }
