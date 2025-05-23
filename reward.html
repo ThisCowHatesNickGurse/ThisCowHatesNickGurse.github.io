@@ -257,7 +257,7 @@ function renderScrollToReveal(rewardUrl) {
 }
 window.onload = function () {
   const urlParams = new URLSearchParams(window.location.search);
-  if (urlParams.has('reward')) && urlParams.has('puzzletype')) {
+  if (urlParams.has('reward') && urlParams.has('puzzletype')) {
     const container = document.querySelector('.container');
     if (container) {
       container.style.display = 'none';  // hide the whole form/container
