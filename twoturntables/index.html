@@ -1,3 +1,4 @@
+<!DOCTYPE html>
 <html lang="en">
 <head>
   <meta charset="UTF-8">
@@ -10,7 +11,6 @@
     .puzzle { margin-top: 20px; }
     #mazeCanvas, #mathPuzzle { border: 1px solid #ccc; display: block; margin-top: 10px; }
   </style>
-  <script src="https://www.google.com/recaptcha/api.js" async defer></script>
 </head>
 <body>
   <div class="container">
@@ -21,11 +21,6 @@
     <select id="puzzle">
       <option value="1">Maze</option>
       <option value="2">Math Challenge</option>
-      <option value="3">Anagram</option>
-      <option value="4">Trivia</option>
-      <option value="5">Memory Game</option>
-      <option value="6">CAPTCHA Verification</option>
-      <option value="7">Image URL Verification</option>
     </select>
     <button onclick="generateChallengeURL()">Generate Challenge URL</button>
     <p id="generatedUrl"></p>
@@ -34,180 +29,75 @@
   </div>
 
   <script>
-    function xorEncryptDecrypt(input, key) {
-      let result = '';
-      for (let i = 0; i < input.length; i++) {
-        result += String.fromCharCode(input.charCodeAt(i) ^ key.charCodeAt(i % key.length));
-      }
-      return result;
+    function base64Encode(str) {
+      return btoa(unescape(encodeURIComponent(str)));
     }
 
-    function base64EncodeWithKey(str, key) {
-      const encrypted = xorEncryptDecrypt(str, key);
-      return btoa(unescape(encodeURIComponent(encrypted)));
-    }
-
-    function base64DecodeWithKey(encoded, key) {
-      const decrypted = decodeURIComponent(escape(atob(encoded)));
-      return xorEncryptDecrypt(decrypted, key);
+    function base64Decode(str) {
+      return decodeURIComponent(escape(atob(str)));
     }
 
     function generateChallengeURL() {
       const url = document.getElementById('url').value;
       const puzzleType = document.getElementById('puzzle').value;
-      const key = puzzleType;
-      const encodedUrl = base64EncodeWithKey(url, key);
-      const challengeUrl = ${window.location.origin}${window.location.pathname}?reward=${encodedUrl}&puzzletype=${puzzleType};
-      document.getElementById('generatedUrl').innerHTML = Challenge URL: <a href="${challengeUrl}" target="_blank">${challengeUrl}</a>;
-    }
-
-    function renderCaptchaPuzzle(rewardUrl) {
-      const puzzleDiv = document.getElementById('puzzleArea');
-      puzzleDiv.innerHTML = 
-        <p>Complete the CAPTCHA to access your reward:</p>
-        <div class="g-recaptcha" data-sitekey="YOUR_RECAPTCHA_SITE_KEY" data-callback="onCaptchaSuccess"></div>
-        <div id="captchaResult"></div>;
-      window.onCaptchaSuccess = function () {
-        document.getElementById('captchaResult').innerHTML = <p><strong>Verified!</strong> Your reward: <a href="${rewardUrl}" target="_blank">Click here</a></p>;
-      }
-    }
-
-    function renderImageUrlPuzzle(rewardUrl) {
-      const puzzleDiv = document.getElementById('puzzleArea');
-      puzzleDiv.innerHTML = <p>Enter a valid Catbox image URL (ends in .jpg, .png, .jpeg):</p>
-        <input type="text" id="imageUrlInput">
-        <button onclick="checkImageUrl('${rewardUrl}')">Submit</button>
-        <div id="imageUrlResult"></div>;
-    }
-
-    function checkImageUrl(rewardUrl) {
-      const input = document.getElementById('imageUrlInput').value.trim();
-      const resultDiv = document.getElementById('imageUrlResult');
-      const regex = /^https?:\/\/files\.catbox\.moe\/[^\s]+\.(jpg|jpeg|png)$/i;
-      if (regex.test(input)) {
-        resultDiv.innerHTML = <p><strong>Valid URL!</strong> Your reward: <a href="${rewardUrl}" target="_blank">Click here</a></p>;
-      } else {
-        resultDiv.textContent = 'Invalid URL. Please try again.';
-      }
+      const encodedUrl = base64Encode(url);
+      const challengeUrl = `${window.location.origin}${window.location.pathname}?reward=${encodedUrl}&puzzletype=${puzzleType}`;
+      document.getElementById('generatedUrl').textContent = `Challenge URL: ${challengeUrl}`;
     }
 
     function renderMazePuzzle(rewardUrl) {
       const puzzleDiv = document.getElementById('puzzleArea');
-      puzzleDiv.innerHTML = '<p>Maze Challenge: Click the exact center of this 200x200 canvas:</p><canvas id="mazeCanvas" width="200" height="200"></canvas>';
+      puzzleDiv.innerHTML = '<p>Solve the maze (click the center square):</p><canvas id="mazeCanvas" width="200" height="200"></canvas>';
       const canvas = document.getElementById('mazeCanvas');
       const ctx = canvas.getContext('2d');
 
       ctx.fillStyle = '#000';
       ctx.fillRect(0, 0, 200, 200);
-      ctx.clearRect(95, 95, 10, 10);
+      ctx.clearRect(80, 80, 40, 40); // Center square as target
 
       canvas.addEventListener('click', (e) => {
         const rect = canvas.getBoundingClientRect();
         const x = e.clientX - rect.left;
         const y = e.clientY - rect.top;
-        if (x > 95 && x < 105 && y > 95 && y < 105) {
-          puzzleDiv.innerHTML += <p><strong>Success!</strong> Your reward: <a href="${rewardUrl}" target="_blank">Click here</a></p>;
-        } else {
-          puzzleDiv.innerHTML += <p>Wrong spot! Try again.</p>;
+        if (x > 80 && x < 120 && y > 80 && y < 120) {
+          puzzleDiv.innerHTML += `<p><strong>Success!</strong> Your reward: <a href="${rewardUrl}" target="_blank">Click here</a></p>`;
         }
       });
     }
 
     function renderMathPuzzle(rewardUrl) {
       const puzzleDiv = document.getElementById('puzzleArea');
-      const a = Math.floor(Math.random() * 100 + 50);
-      const b = Math.floor(Math.random() * 100 + 50);
-      const c = Math.floor(Math.random() * 10 + 1);
-      const answer = a + b * c;
+      const a = Math.floor(Math.random() * 50 + 1);
+      const b = Math.floor(Math.random() * 50 + 1);
+      const answer = a + b;
 
-      puzzleDiv.innerHTML = <p>Hard Math Problem:</p>
-        <p>${a} + ${b} * ${c} = ?</p>
+      puzzleDiv.innerHTML = `<p>Solve the math problem:</p>
+        <p>${a} + ${b} = ?</p>
         <input type="number" id="mathAnswer">
         <button onclick="checkMathAnswer(${answer}, '${rewardUrl}')">Submit</button>
-        <div id="mathResult"></div>;
+        <div id="mathResult"></div>`;
     }
 
     function checkMathAnswer(correctAnswer, rewardUrl) {
       const userAnswer = parseInt(document.getElementById('mathAnswer').value);
       const resultDiv = document.getElementById('mathResult');
       if (userAnswer === correctAnswer) {
-        resultDiv.innerHTML = <p><strong>Correct!</strong> Your reward: <a href="${rewardUrl}" target="_blank">Click here</a></p>;
+        resultDiv.innerHTML = `<p><strong>Correct!</strong> Your reward: <a href="${rewardUrl}" target="_blank">Click here</a></p>`;
       } else {
         resultDiv.textContent = 'Try again!';
-      }
-    }
-
-    function renderAnagramPuzzle(rewardUrl) {
-      const puzzleDiv = document.getElementById('puzzleArea');
-      const word = 'triangle';
-      const shuffled = 'integral';
-
-      puzzleDiv.innerHTML = <p>Unscramble the word: <strong>${shuffled}</strong></p>
-        <input type="text" id="anagramAnswer">
-        <button onclick="checkAnagramAnswer('${word}', '${rewardUrl}')">Submit</button>
-        <div id="anagramResult"></div>;
-    }
-
-    function checkAnagramAnswer(correct, rewardUrl) {
-      const answer = document.getElementById('anagramAnswer').value.trim().toLowerCase();
-      const resultDiv = document.getElementById('anagramResult');
-      if (answer === correct) {
-        resultDiv.innerHTML = <p><strong>Correct!</strong> Your reward: <a href="${rewardUrl}" target="_blank">Click here</a></p>;
-      } else {
-        resultDiv.textContent = 'Wrong! Try again.';
-      }
-    }
-
-    function renderTriviaPuzzle(rewardUrl) {
-      const puzzleDiv = document.getElementById('puzzleArea');
-      puzzleDiv.innerHTML = <p>Trivia Question: Who wrote '1984'?</p>
-        <input type="text" id="triviaAnswer">
-        <button onclick="checkTriviaAnswer('george orwell', '${rewardUrl}')">Submit</button>
-        <div id="triviaResult"></div>;
-    }
-
-    function checkTriviaAnswer(correct, rewardUrl) {
-      const answer = document.getElementById('triviaAnswer').value.trim().toLowerCase();
-      const resultDiv = document.getElementById('triviaResult');
-      if (answer === correct) {
-        resultDiv.innerHTML = <p><strong>Correct!</strong> Your reward: <a href="${rewardUrl}" target="_blank">Click here</a></p>;
-      } else {
-        resultDiv.textContent = 'Wrong answer. Try again!';
-      }
-    }
-
-    function renderMemoryGame(rewardUrl) {
-      const puzzleDiv = document.getElementById('puzzleArea');
-      const sequence = Array.from({length: 5}, () => Math.floor(Math.random() * 9 + 1));
-      const display = sequence.join(' ');
-      puzzleDiv.innerHTML = <p>Memorize this sequence:</p><p><strong>${display}</strong></p>
-        <button onclick="promptMemoryAnswer(${JSON.stringify(sequence)}, '${rewardUrl}')">Continue</button>;
-    }
-
-    function promptMemoryAnswer(sequence, rewardUrl) {
-      const userInput = prompt("Enter the sequence (space separated):");
-      if (userInput.trim() === sequence.join(' ')) {
-        document.getElementById('puzzleArea').innerHTML += <p><strong>Correct!</strong> Your reward: <a href="${rewardUrl}" target="_blank">Click here</a></p>;
-      } else {
-        alert('Incorrect sequence. Try again.');
       }
     }
 
     window.onload = function () {
       const urlParams = new URLSearchParams(window.location.search);
       if (urlParams.has('reward') && urlParams.has('puzzletype')) {
-        const encodedReward = urlParams.get('reward');
+        const reward = base64Decode(urlParams.get('reward'));
         const type = urlParams.get('puzzletype');
-        const reward = base64DecodeWithKey(encodedReward, type);
 
-        switch (type) {
-          case '1': renderMazePuzzle(reward); break;
-          case '2': renderMathPuzzle(reward); break;
-          case '3': renderAnagramPuzzle(reward); break;
-          case '4': renderTriviaPuzzle(reward); break;
-          case '5': renderMemoryGame(reward); break;
-          case '6': renderCaptchaPuzzle(reward); break;
-          case '7': renderImageUrlPuzzle(reward); break;
+        if (type === '1') {
+          renderMazePuzzle(reward);
+        } else if (type === '2') {
+          renderMathPuzzle(reward);
         }
       }
     }
