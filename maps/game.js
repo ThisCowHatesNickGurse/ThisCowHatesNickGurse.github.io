@@ -3,27 +3,56 @@ let randomLat, randomLng;
 let guessMap, marker, actualMarker;
 const radiusMeters = 1000;
 
+// Called when user presses "Start Game"
 function startGame() {
-  document.getElementById('results').innerText = "Getting location...";
-  navigator.geolocation.getCurrentPosition(pos => {
-    userLat = pos.coords.latitude;
-    userLng = pos.coords.longitude;
+  document.getElementById('results').innerText = "Requesting location...";
+  
+  if (!navigator.geolocation) {
+    alert("Geolocation is not supported by your browser.");
+    return;
+  }
 
-    const randomPoint = getRandomLocation(userLat, userLng, radiusMeters);
-    randomLat = randomPoint.latitude;
-    randomLng = randomPoint.longitude;
-
-    showStreetViewLocation(randomLat, randomLng);
-  }, () => {
-    alert("Location access denied.");
+  navigator.geolocation.getCurrentPosition(successCallback, errorCallback, {
+    enableHighAccuracy: true,
+    timeout: 10000,
+    maximumAge: 0
   });
+}
+
+function successCallback(pos) {
+  userLat = pos.coords.latitude;
+  userLng = pos.coords.longitude;
+
+  const randomPoint = getRandomLocation(userLat, userLng, radiusMeters);
+  randomLat = randomPoint.latitude;
+  randomLng = randomPoint.longitude;
+
+  showStreetViewLocation(randomLat, randomLng);
+}
+
+function errorCallback(error) {
+  let msg = "Failed to get location: ";
+  switch (error.code) {
+    case error.PERMISSION_DENIED:
+      msg += "Permission denied. Please allow location access.";
+      break;
+    case error.POSITION_UNAVAILABLE:
+      msg += "Location unavailable.";
+      break;
+    case error.TIMEOUT:
+      msg += "Request timed out.";
+      break;
+    default:
+      msg += "Unknown error.";
+  }
+  document.getElementById('results').innerText = msg;
 }
 
 // Generate random location within radius
 function getRandomLocation(lat, lng, radius) {
   const y0 = lat;
   const x0 = lng;
-  const rd = radius / 111300; // ~meters in one degree
+  const rd = radius / 111300; // degrees per meter approximation
 
   const u = Math.random();
   const v = Math.random();
@@ -47,8 +76,7 @@ function showStreetViewLocation(lat, lng) {
     attribution: '&copy; OpenStreetMap contributors'
   }).addTo(guessMap);
 
-  // After showing random point, wait for guess
-  document.getElementById('results').innerHTML = "Click on the map where you think your real location is.";
+  document.getElementById('results').innerHTML = "Click where you think your original location is.";
 
   guessMap.on('click', function(e) {
     if (marker) guessMap.removeLayer(marker);
@@ -57,7 +85,6 @@ function showStreetViewLocation(lat, lng) {
     const guessedLat = e.latlng.lat;
     const guessedLng = e.latlng.lng;
 
-    // Show actual position
     actualMarker = L.circleMarker([userLat, userLng], {radius: 8, color: 'red'}).addTo(guessMap);
     actualMarker.bindPopup("Actual Location").openPopup();
 
