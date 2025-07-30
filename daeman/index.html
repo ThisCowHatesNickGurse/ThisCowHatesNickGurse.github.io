@@ -1,0 +1,56 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>YND DAE Pac-Man</title>
+  <style>
+    canvas {
+      background-color: black;
+      display: block;
+      margin: 0 auto;
+    }
+  </style>
+</head>
+<body>
+
+<canvas id="game" width="448" height="496"></canvas>
+
+<script>
+const canvas = document.getElementById("game");
+const ctx = canvas.getContext("2d");
+
+const tileSize = 32;
+let player = { x: 7 * tileSize, y: 7 * tileSize, dx: 0, dy: 0 };
+const speed = 2;
+
+const faceImg = new Image();
+faceImg.src = 'yndface.png'; // Make sure this file is in the same directory
+
+// Draw the player (YND DAE)
+function drawPlayer() {
+  ctx.drawImage(faceImg, player.x, player.y, tileSize, tileSize);
+}
+
+// Handle keyboard input
+document.addEventListener("keydown", (e) => {
+  if (e.key === "ArrowUp")    { player.dy = -speed; player.dx = 0; }
+  if (e.key === "ArrowDown")  { player.dy = speed;  player.dx = 0; }
+  if (e.key === "ArrowLeft")  { player.dx = -speed; player.dy = 0; }
+  if (e.key === "ArrowRight") { player.dx = speed;  player.dy = 0; }
+});
+
+// Game loop
+function gameLoop() {
+  ctx.clearRect(0, 0, canvas.width, canvas.height);
+  player.x += player.dx;
+  player.y += player.dy;
+
+  drawPlayer();
+  requestAnimationFrame(gameLoop);
+}
+
+faceImg.onload = gameLoop;
+</script>
+
+</body>
+</html>
