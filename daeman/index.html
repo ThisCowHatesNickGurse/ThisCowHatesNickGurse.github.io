@@ -2,54 +2,184 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8" />
-  <title>YND DAE Pac-Man</title>
+  <title>YND DAE PACMAN</title>
   <style>
     canvas {
       background-color: black;
       display: block;
-      margin: 0 auto;
+      margin: 20px auto;
+      border: 4px solid #00ff99;
+    }
+    #score {
+      text-align: center;
+      font-size: 24px;
+      color: #00ff99;
+      font-family: monospace;
     }
   </style>
 </head>
 <body>
 
-<canvas id="game" width="448" height="496"></canvas>
+<div id="score">Score: 0</div>
+<canvas id="game" width="448" height="480"></canvas>
 
 <script>
 const canvas = document.getElementById("game");
 const ctx = canvas.getContext("2d");
 
 const tileSize = 32;
-let player = { x: 7 * tileSize, y: 7 * tileSize, dx: 0, dy: 0 };
-const speed = 2;
+const rows = 15;
+const cols = 14;
+let score = 0;
+
+const map = [
+  "##############",
+  "#............#",
+  "#.####.####..#",
+  "#............#",
+  "#.####.####..#",
+  "#............#",
+  "####..#..#####",
+  "#............#",
+  "#.####.####..#",
+  "#............#",
+  "#.####.####..#",
+  "#............#",
+  "#.##########.#",
+  "#............#",
+  "##############"
+];
+
+let player = { x: 1, y: 1, dx: 0, dy: 0 };
+
+let enemies = [
+  { x: 12, y: 1, dir: "left" },
+  { x: 12, y: 13, dir: "up" }
+];
+
+let enemyMoveCounter = 0;
+const enemyMoveDelay = 20; // Lower = faster enemies
+let playerMoveCounter = 0;
+const playerMoveDelay = 5; // Increase to make player slower
 
 const faceImg = new Image();
-faceImg.src = 'yndface.png'; // Make sure this file is in the same directory
+const enemyImg = new Image();
+faceImg.src = "https://files.catbox.moe/5jugai.png";
+enemyImg.src = "https://files.catbox.moe/nq0x9r.png";
 
-// Draw the player (YND DAE)
-function drawPlayer() {
-  ctx.drawImage(faceImg, player.x, player.y, tileSize, tileSize);
-}
-
-// Handle keyboard input
 document.addEventListener("keydown", (e) => {
-  if (e.key === "ArrowUp")    { player.dy = -speed; player.dx = 0; }
-  if (e.key === "ArrowDown")  { player.dy = speed;  player.dx = 0; }
-  if (e.key === "ArrowLeft")  { player.dx = -speed; player.dy = 0; }
-  if (e.key === "ArrowRight") { player.dx = speed;  player.dy = 0; }
+  if (e.key === "ArrowUp")    setDirection(0, -1);
+  if (e.key === "ArrowDown")  setDirection(0, 1);
+  if (e.key === "ArrowLeft")  setDirection(-1, 0);
+  if (e.key === "ArrowRight") setDirection(1, 0);
 });
 
-// Game loop
+function setDirection(dx, dy) {
+  const newX = player.x + dx;
+  const newY = player.y + dy;
+  if (map[newY][newX] !== "#") {
+    player.dx = dx;
+    player.dy = dy;
+  }
+}
+
+function drawMaze() {
+  for (let y = 0; y < rows; y++) {
+    for (let x = 0; x < cols; x++) {
+      const tile = map[y][x];
+      if (tile === "#") {
+        ctx.fillStyle = "#333";
+        ctx.fillRect(x * tileSize, y * tileSize, tileSize, tileSize);
+      } else if (tile === ".") {
+        ctx.fillStyle = "#ffcc00";
+        ctx.beginPath();
+        ctx.arc(x * tileSize + 16, y * tileSize + 16, 4, 0, Math.PI * 2);
+        ctx.fill();
+      }
+    }
+  }
+}
+
+function movePlayer() {
+  playerMoveCounter++;
+  if (playerMoveCounter < playerMoveDelay) return;
+  playerMoveCounter = 0;
+
+  const newX = player.x + player.dx;
+  const newY = player.y + player.dy;
+
+  if (map[newY][newX] !== "#") {
+    player.x = newX;
+    player.y = newY;
+
+    if (map[newY][newX] === ".") {
+      map[newY] = map[newY].substring(0, newX) + " " + map[newY].substring(newX + 1);
+      score += 10;
+      document.getElementById("score").innerText = "Score: " + score;
+    }
+  }
+}
+
+
+function drawPlayer() {
+  ctx.drawImage(faceImg, player.x * tileSize, player.y * tileSize, tileSize, tileSize);
+}
+
+function drawEnemies() {
+  enemies.forEach(enemy => {
+    ctx.drawImage(enemyImg, enemy.x * tileSize, enemy.y * tileSize, tileSize, tileSize);
+  });
+}
+
+function moveEnemies() {
+  enemies.forEach(enemy => {
+    let dx = 0, dy = 0;
+    if (enemy.dir === "left") dx = -1;
+    if (enemy.dir === "right") dx = 1;
+    if (enemy.dir === "up") dy = -1;
+    if (enemy.dir === "down") dy = 1;
+
+    const newX = enemy.x + dx;
+    const newY = enemy.y + dy;
+
+    if (map[newY][newX] !== "#") {
+      enemy.x = newX;
+      enemy.y = newY;
+    } else {
+      // Pick a random new direction
+      const dirs = ["left", "right", "up", "down"];
+      enemy.dir = dirs[Math.floor(Math.random() * dirs.length)];
+    }
+
+    // Check collision with player
+    if (enemy.x === player.x && enemy.y === player.y) {
+      alert("Game Over! Final Score: " + score);
+      window.location.reload();
+    }
+  });
+}
+
 function gameLoop() {
   ctx.clearRect(0, 0, canvas.width, canvas.height);
-  player.x += player.dx;
-  player.y += player.dy;
+  drawMaze();
+  movePlayer();
 
+  enemyMoveCounter++;
+  if (enemyMoveCounter >= enemyMoveDelay) {
+    moveEnemies();
+    enemyMoveCounter = 0;
+  }
+
+  drawEnemies();
   drawPlayer();
   requestAnimationFrame(gameLoop);
 }
 
-faceImg.onload = gameLoop;
+faceImg.onload = () => {
+  enemyImg.onload = () => {
+    gameLoop();
+  };
+};
 </script>
 
 </body>
