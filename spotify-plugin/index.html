@@ -9,34 +9,90 @@
       font-family: system-ui, sans-serif;
       background: #121212;
       color: white;
+      margin: 0;
+      padding: 2rem;
       display: flex;
       flex-direction: column;
       align-items: center;
-      justify-content: center;
-      height: 100vh;
-      margin: 0;
     }
+
     h1 {
-      font-size: 2rem;
+      font-size: 2.5rem;
       margin-bottom: 1rem;
+      color: #1DB954;
     }
+
     a.install-button {
-      padding: 0.75em 1.5em;
+      padding: 1em 2em;
       background: #1DB954;
       color: white;
       border-radius: 8px;
       text-decoration: none;
       font-weight: bold;
+      font-size: 1.2rem;
+      margin: 1.5rem 0;
       transition: background 0.2s;
     }
+
     a.install-button:hover {
-      background: #1aa34a;
+      background: #17a84a;
+    }
+
+    .video-wrapper {
+      width: 100%;
+      max-width: 800px;
+      aspect-ratio: 16 / 9;
+      margin: 2rem 0;
+      border: 2px solid #333;
+      border-radius: 12px;
+      overflow: hidden;
+    }
+
+    iframe, video {
+      width: 100%;
+      height: 100%;
+      border: none;
+    }
+
+    .note, .monkey-links {
+      font-size: 0.95rem;
+      color: #ccc;
+      margin: 0.5rem 0;
+      text-align: center;
+    }
+
+    .monkey-links a {
+      color: #1DB954;
+      font-weight: bold;
+      margin: 0 0.5rem;
+      text-decoration: none;
+    }
+
+    .monkey-links a:hover {
+      text-decoration: underline;
     }
   </style>
 </head>
 <body>
-  <h1>Install My Custom Script</h1>
-  <a class="install-button" href="https://yourdomain.com/myscript.user.js">Install Script</a>
-  <p style="margin-top: 20px; font-size: 0.9em;">Requires Tampermonkey or Violentmonkey</p>
+  <h1>Install My Custom Bandlab Script</h1>
+
+  <!-- Install Button -->
+  <a class="install-button" href="https://theweedman.cfd/myscript.user.js">
+    👉 Click to Install Script
+  </a>
+
+  <!-- Tampermonkey / Violentmonkey Links -->
+  <div class="monkey-links">
+    📦 First, install a script manager:<br/>
+    <a href="https://tampermonkey.net/?ext=dhdg&browser=chrome" target="_blank">Tampermonkey</a> |
+    <a href="https://violentmonkey.github.io/get-it/" target="_blank">Violentmonkey</a>
+  </div>
+    <video controls>
+      <source src="https://yourdomain.com/tutorial.mp4" type="video/mp4">
+      Your browser does not support the video tag.
+    </video>
+  </div>
+
+  <p class="note">Once the manager is installed, click the green button above to install the script!</p>
 </body>
 </html>
