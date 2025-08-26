@@ -18,22 +18,22 @@
     /* Active button style */
 a.button-rounded.active,
 a.button-rounded.active:hover {
-    background-color: #000 !important; /* black background */
-    color: #fff !important; /* text/icon color */
+    background-color: #000 !important;
+    color: #fff !important;
 }
 
 /* Optional: change the SVG icons when active */
 a.button-rounded.active .top-bar-icon-inactive {
-    display: none; /* hide inactive icon */
+    display: none;
 }
 a.button-rounded.active .top-bar-icon-active {
-    display: inline; /* show active icon */
+    display: inline;
 }
 
         /* Base */
         body, html {
-            background-color: #121212 !important;
-            color: #FFFFFF !important;
+            background-color: skyblue !important; /* sky blue background */
+            color: #000000 !important;            /* black text */
             font-family: 'Circular Std', 'Helvetica Neue', Arial, sans-serif !important;
         }
 
@@ -63,10 +63,9 @@ a.button-rounded.active .top-bar-icon-active {
             border-bottom: 1px solid #282828 !important;
         }
 
-
         /* Scrollbar */
         ::-webkit-scrollbar { width: 12px; }
-        ::-webkit-scrollbar-track { background: #121212; }
+        ::-webkit-scrollbar-track { background: skyblue; }
         ::-webkit-scrollbar-thumb {
             background-color: #4d4d4d; border-radius: 10px;
         }
@@ -177,6 +176,7 @@ a.button-rounded.active .top-bar-icon-active {
         }
     });
 })();
+
 
 
 
