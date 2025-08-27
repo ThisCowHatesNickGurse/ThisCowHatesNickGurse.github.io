@@ -18,7 +18,7 @@
     /* Active button style */
 a.button-rounded.active,
 a.button-rounded.active:hover {
-    background-color: #000 !important;
+    background-color: #87CEEB !important; /* sky blue background */
     color: #fff !important;
 }
 
@@ -32,21 +32,21 @@ a.button-rounded.active .top-bar-icon-active {
 
         /* Base */
         body, html {
-            background-color: skyblue !important; /* sky blue background */
-            color: #000000 !important;            /* black text */
+            background-color: skyblue !important;
+            color: #ffffff !important; /* white text */
             font-family: 'Circular Std', 'Helvetica Neue', Arial, sans-serif !important;
         }
 
         a, .link, .hover-link {
-            color: #1DB954 !important;
+            color: #ffffff !important; /* links white */
             text-decoration: none;
             transition: color 0.2s ease;
         }
-        a:hover, .hover-link:hover { color: #1ed760 !important; }
+        a:hover, .hover-link:hover { color: #f0f0f0 !important; }
 
         /* Buttons */
         .button, .btn {
-            background-color: #1DB954 !important;
+            background-color: #87CEEB !important; /* sky blue button */
             color: #fff !important;
             border-radius: 20px !important;
             border: none !important;
@@ -55,26 +55,26 @@ a.button-rounded.active .top-bar-icon-active {
             cursor: pointer;
             transition: background-color 0.2s ease, transform 0.1s ease;
         }
-        button:hover, .btn:hover { background-color: #1ed760 !important; transform: scale(1.05); }
+        button:hover, .btn:hover { background-color: #6ec0e0 !important; transform: scale(1.05); }
 
         /* Navbar */
         header, .Navbar, nav {
-            background-color: #000 !important;
-            border-bottom: 1px solid #282828 !important;
+            background-color: #4682B4 !important; /* steel blue */
+            border-bottom: 1px solid #5f9ea0 !important;
         }
 
         /* Scrollbar */
         ::-webkit-scrollbar { width: 12px; }
         ::-webkit-scrollbar-track { background: skyblue; }
         ::-webkit-scrollbar-thumb {
-            background-color: #4d4d4d; border-radius: 10px;
+            background-color: #4682B4; border-radius: 10px;
         }
-        ::-webkit-scrollbar-thumb:hover { background-color: #6a6a6a; }
+        ::-webkit-scrollbar-thumb:hover { background-color: #5f9ea0; }
 
         /* Player Bar */
         .player-bar, footer, .Footer {
-            background-color: #181818 !important;
-            border-top: 1px solid #282828 !important;
+            background-color: #4682B4 !important;
+            border-top: 1px solid #5f9ea0 !important;
             height: 92px !important;
             display: flex !important;
             align-items: center !important;
@@ -82,6 +82,7 @@ a.button-rounded.active .top-bar-icon-active {
             padding: 0 24px !important;
             font-size: 14px !important;
             box-sizing: border-box;
+            color: #fff !important;
         }
 
         /* Track Info */
@@ -94,32 +95,33 @@ a.button-rounded.active .top-bar-icon-active {
             transition: transform 0.2s ease;
         }
         .spotify-track-info:hover img { transform: scale(1.05); }
-        .spotify-track-info .title { font-weight: bold; }
-        .spotify-track-info .artist { color: #b3b3b3; font-size: 12px; }
+        .spotify-track-info .title { font-weight: bold; color: #fff; }
+        .spotify-track-info .artist { color: #e0e0e0; font-size: 12px; }
 
         /* Controls */
         .spotify-controls { display: flex; flex-direction: column; align-items: center; gap: 4px; }
         .spotify-buttons { display: flex; align-items: center; gap: 16px; }
         .spotify-play {
-            background-color: #1DB954; border-radius: 50%;
+            background-color: #87CEEB; border-radius: 50%;
             width: 44px; height: 44px;
             display: flex; align-items: center; justify-content: center;
             cursor: pointer; transition: background-color 0.2s, transform 0.1s;
             font-size: 18px;
+            color: #fff;
         }
-        .spotify-play:hover { background-color: #1ed760; transform: scale(1.1); }
+        .spotify-play:hover { background-color: #6ec0e0; transform: scale(1.1); }
 
         .spotify-progress {
             display: flex; align-items: center; gap: 8px;
-            font-size: 11px; color: #b3b3b3; max-width: 400px; width: 100%;
+            font-size: 11px; color: #e0e0e0; max-width: 400px; width: 100%;
         }
-        .spotify-bar { flex: 1; height: 4px; background-color: #535353; border-radius: 2px; overflow: hidden; }
-        .spotify-bar-fill { height: 100%; background-color: #1DB954; width: 0%; transition: width 0.3s linear; }
+        .spotify-bar { flex: 1; height: 4px; background-color: #add8e6; border-radius: 2px; overflow: hidden; }
+        .spotify-bar-fill { height: 100%; background-color: #4682B4; width: 0%; transition: width 0.3s linear; }
 
         /* Volume */
-        .spotify-volume { display: flex; align-items: center; gap: 8px; min-width: 120px; }
-        .spotify-vol-bar { flex: 1; height: 4px; background-color: #535353; border-radius: 2px; overflow: hidden; }
-        .spotify-vol-fill { height: 100%; background-color: #1DB954; width: 70%; }
+        .spotify-volume { display: flex; align-items: center; gap: 8px; min-width: 120px; color: #fff; }
+        .spotify-vol-bar { flex: 1; height: 4px; background-color: #add8e6; border-radius: 2px; overflow: hidden; }
+        .spotify-vol-fill { height: 100%; background-color: #4682B4; width: 70%; }
     `;
     document.head.appendChild(style);
 
@@ -176,7 +178,48 @@ a.button-rounded.active .top-bar-icon-active {
         }
     });
 })();
+(function() {
+    'use strict';
 
+    const styleTag = document.createElement('style');
+    styleTag.textContent = `
+        /* top bar background */
+        site-top-bar nav.top-bar {
+            background-color: #00aaff !important; /* sky blue */
+        }
+
+        /* top bar links/text/icons */
+        site-top-bar nav.top-bar a,
+        site-top-bar nav.top-bar span,
+        site-top-bar nav.top-bar button,
+        site-top-bar nav.top-bar .top-bar-icon,
+        site-top-bar nav.top-bar svg path {
+            color: #fff !important;       /* white text */
+            fill: #fff !important;        /* white icons */
+        }
+
+        /* hover states */
+        site-top-bar nav.top-bar a:hover,
+        site-top-bar nav.top-bar button:hover {
+            color: #ffffaa !important;    /* optional lighter hover */
+            fill: #ffffaa !important;
+        }
+
+        /* search bar in top bar */
+        site-top-bar nav.top-bar .search-form-input {
+            background-color: #0077cc !important; /* slightly darker blue for contrast */
+            color: #fff !important;
+        }
+        site-top-bar nav.top-bar .search-form-input::placeholder {
+            color: #d0f0ff !important;
+        }
+        site-top-bar nav.top-bar .search-form-submit svg path,
+        site-top-bar nav.top-bar .search-form-clear svg path {
+            fill: #fff !important;
+        }
+    `;
+    document.head.appendChild(styleTag);
+})();
 
 
 
