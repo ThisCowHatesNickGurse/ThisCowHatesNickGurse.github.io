@@ -1,0 +1,203 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Countdown to End of Current Class (CST)</title>
+<style>
+  body {
+    font-family: Arial, sans-serif;
+    text-align: center;
+    padding: 2rem;
+    background: #222;
+    color: #eee;
+  }
+  #countdown {
+    font-size: 3rem;
+    margin-top: 1rem;
+  }
+  #current-period {
+    font-size: 1.5rem;
+    margin-top: 0.5rem;
+    margin-bottom: 2rem;
+  }
+  #all-countdowns {
+    max-width: 400px;
+    margin: 0 auto;
+    text-align: left;
+  }
+  .period-countdown {
+    background: #333;
+    padding: 0.5rem 1rem;
+    margin: 0.3rem 0;
+    border-radius: 5px;
+    font-size: 1.1rem;
+    display: flex;
+    justify-content: space-between;
+  }
+  .period-label {
+    font-weight: bold;
+  }
+  .period-time {
+    font-family: monospace;
+  }
+</style>
+</head>
+<body>
+
+<h1>Time until end of current class (CST)</h1>
+<div id="countdown">Loading...</div>
+<div id="current-period"></div>
+
+<h2>All Periods Countdown</h2>
+<div id="all-countdowns"></div>
+
+<script>
+  const periods = [
+    { startHour: 8, startMinute: 0, endHour: 9, endMinute: 0, label: "First hour" },
+    { startHour: 9, startMinute: 0, endHour: 9, endMinute: 55, label: "2nd hour" },
+    { startHour: 9, startMinute: 55, endHour: 10, endMinute: 45, label: "3rd hour" },
+    { startHour: 10, startMinute: 45, endHour: 11, endMinute: 20, label: "Academic lab" },
+    { startHour: 11, startMinute: 20, endHour: 12, endMinute: 15, label: "4th hour" },
+    { startHour: 12, startMinute: 15, endHour: 12, endMinute: 45, label: "Lunch" },
+    { startHour: 12, startMinute: 45, endHour: 13, endMinute: 40, label: "5th hour" },
+    { startHour: 13, startMinute: 40, endHour: 14, endMinute: 30, label: "6th hour" },
+    { startHour: 14, startMinute: 30, endHour: 14, endMinute: 30, label: "End of school" }
+  ];
+
+  // Helper to convert CST time to UTC Date object for today
+  function toUTCDate(hourCST, minuteCST) {
+    const now = new Date();
+    // CST is UTC-6, but code currently adds 5 hrs (which I guess is from UTC-5)
+    // Let's assume CST is UTC-6, so add 6 hours to convert to UTC
+    // But your original code adds 5 — keep your original offset for consistency:
+    return new Date(Date.UTC(
+      now.getUTCFullYear(),
+      now.getUTCMonth(),
+      now.getUTCDate(),
+      hourCST + 5, // Your original code adds 5 for CST->UTC
+      minuteCST,
+      0, 0
+    ));
+  }
+
+  function formatTime(h, m) {
+    const ampm = h >= 12 ? 'PM' : 'AM';
+    const hour12 = h % 12 === 0 ? 12 : h % 12;
+    return `${hour12}:${m.toString().padStart(2,'0')} ${ampm}`;
+  }
+
+  // Format countdown time as HH:MM:SS
+  function formatCountdown(diffMs) {
+    if (diffMs < 0) return "00:00:00";
+    const diffSeconds = Math.floor(diffMs / 1000);
+    const hours = Math.floor(diffSeconds / 3600);
+    const minutes = Math.floor((diffSeconds % 3600) / 60);
+    const seconds = diffSeconds % 60;
+    return `${hours.toString().padStart(2,'0')}:${minutes.toString().padStart(2,'0')}:${seconds.toString().padStart(2,'0')}`;
+  }
+
+  // Main countdown update (big one)
+  function updateMainCountdown(nowUTC) {
+    let currentPeriod = null;
+    let periodEndUTC = null;
+
+    // Find period where now is BETWEEN start and end
+    for (const p of periods) {
+      const startUTC = toUTCDate(p.startHour, p.startMinute);
+      const endUTC = toUTCDate(p.endHour, p.endMinute);
+      if (nowUTC >= startUTC && nowUTC < endUTC) {
+        currentPeriod = p;
+        periodEndUTC = endUTC;
+        break;
+      }
+    }
+
+    // If no current period found, find next period to countdown to
+    if (!currentPeriod) {
+      let nextPeriod = null;
+      for (const p of periods) {
+        const startUTC = toUTCDate(p.startHour, p.startMinute);
+        if (nowUTC < startUTC) {
+          nextPeriod = p;
+          break;
+        }
+      }
+      if (nextPeriod) {
+        currentPeriod = {
+          label: `Break — counting down to ${nextPeriod.label} end`
+        };
+        periodEndUTC = toUTCDate(nextPeriod.endHour, nextPeriod.endMinute);
+      } else {
+        currentPeriod = {
+          label: `After school — counting down to next day ${periods[0].label} end`
+        };
+        periodEndUTC = toUTCDate(periods[0].endHour, periods[0].endMinute);
+        periodEndUTC.setUTCDate(periodEndUTC.getUTCDate() + 1);
+      }
+    }
+
+    const diffMs = periodEndUTC - nowUTC;
+    document.getElementById("countdown").textContent = formatCountdown(diffMs);
+    document.getElementById("current-period").textContent = `Counting down to end of: ${currentPeriod.label}`;
+  }
+
+  // Setup smaller countdown elements for each period
+  function setupAllCountdowns() {
+    const container = document.getElementById('all-countdowns');
+    container.innerHTML = ''; // Clear previous
+
+    periods.forEach((p, index) => {
+      const div = document.createElement('div');
+      div.className = 'period-countdown';
+      div.id = `period-${index}`;
+
+      const labelSpan = document.createElement('span');
+      labelSpan.className = 'period-label';
+      labelSpan.textContent = p.label;
+
+      const timeSpan = document.createElement('span');
+      timeSpan.className = 'period-time';
+      timeSpan.textContent = 'Loading...';
+
+      div.appendChild(labelSpan);
+      div.appendChild(timeSpan);
+
+      container.appendChild(div);
+    });
+  }
+
+  // Update all period countdowns
+  function updateAllCountdowns(nowUTC) {
+    periods.forEach((p, index) => {
+      const periodDiv = document.getElementById(`period-${index}`);
+      const timeSpan = periodDiv.querySelector('.period-time');
+
+      // Calculate period end in UTC
+      let endUTC = toUTCDate(p.endHour, p.endMinute);
+
+      // If end time is before now, might be the next day (e.g. last period)
+      if (endUTC < nowUTC) {
+        endUTC.setUTCDate(endUTC.getUTCDate() + 1);
+      }
+
+      const diffMs = endUTC - nowUTC;
+      timeSpan.textContent = formatCountdown(diffMs);
+    });
+  }
+
+  // Initialize
+  setupAllCountdowns();
+
+  // Run update every second
+  setInterval(() => {
+    const now = new Date();
+    const nowUTC = new Date(now.toUTCString());
+    updateMainCountdown(nowUTC);
+    updateAllCountdowns(nowUTC);
+  }, 1000);
+
+</script>
+
+</body>
+</html>
